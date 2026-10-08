@@ -23,10 +23,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const labels: Record<string, string> = {
       "canh-bao-khan-cap":"Cảnh báo khẩn cấp", "tra-cuu-traceid":"Tra cứu TraceID",
       "kiem-tra-link-tmdt":"Kiểm tra link TMĐT", "bao-cao-vi-pham":"Báo cáo vi phạm",
+      "admin":"Quản trị hệ thống",
       "gioi-thieu":"Giới thiệu", "quy-che-bien-tap":"Quy chế biên tập", "dinh-chinh":"Đính chính",
       "bao-mat-du-lieu":"Bảo mật dữ liệu", "chinh-sach-bao-mat":"Chính sách bảo mật", "dieu-khoan-su-dung":"Điều khoản sử dụng",
     };
     title = labels[first] ?? "Không tìm thấy trang"; description = `${title} - QSAC.VN`;
+    if (first === "admin") {
+      const adminLabels: Record<string, string> = { "phan-anh":"Quản lý phản ánh", "noi-dung":"Quản lý nội dung", "menu":"Quản lý menu website", "du-lieu":"Nguồn dữ liệu", "tai-khoan":"Tài khoản và phân quyền", "cau-hinh":"Cấu hình hệ thống" };
+      title = second ? adminLabels[second] ?? "Quản trị hệ thống" : "Trung tâm điều hành";
+      description = `${title} - Cổng quản trị QSAC.VN`;
+      robots = { index: false, follow: false };
+    }
     if (!labels[first]) robots = { index: false, follow: false };
   }
   const path = "/" + segments.join("/");
@@ -38,8 +45,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function CatchAllPage({ params, searchParams }: Props) {
   const segments = (await params).slug ?? [];
   const [first, second] = segments;
-  const knownStatic = ["canh-bao-khan-cap","tra-cuu-traceid","kiem-tra-link-tmdt","bao-cao-vi-pham","gioi-thieu","quy-che-bien-tap","dinh-chinh","bao-mat-du-lieu","chinh-sach-bao-mat","dieu-khoan-su-dung","search"];
-  const knownRoute = !first || (first === "archive" && Boolean(second && categoryBySlug[second])) || (first === "posts" && Boolean(articles.find((item) => item.slug === second))) || knownStatic.includes(first);
+  const knownStatic = ["admin","canh-bao-khan-cap","tra-cuu-traceid","kiem-tra-link-tmdt","bao-cao-vi-pham","gioi-thieu","quy-che-bien-tap","dinh-chinh","bao-mat-du-lieu","chinh-sach-bao-mat","dieu-khoan-su-dung","search"];
+  const adminRoutes = ["phan-anh","noi-dung","menu","du-lieu","tai-khoan","cau-hinh"];
+  const knownAdminRoute = first === "admin" && segments.length <= 2 && (!second || adminRoutes.includes(second));
+  const knownPostRoute = first === "posts" && segments.length === 2 && Boolean(second && /^[a-z0-9-]+$/.test(second));
+  const knownRoute = !first || knownAdminRoute || (first === "archive" && Boolean(second && categoryBySlug[second])) || knownPostRoute || (first !== "admin" && knownStatic.includes(first));
   if (!knownRoute) notFound();
   const raw = await searchParams;
   const normalized = Object.fromEntries(Object.entries(raw).map(([key,value]) => [key,Array.isArray(value)?value[0]??"":value??""]));

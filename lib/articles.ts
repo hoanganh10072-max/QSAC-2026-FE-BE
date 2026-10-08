@@ -47,7 +47,16 @@ const art = (
   author: "Ban biên tập QSAC",
   riskLevel,
   contentType,
-  image: { src: `/images/${categorySlug}.svg`, alt: `Minh họa chủ đề ${title.toLowerCase()}` },
+  image: {
+    src: slug.includes("hoan-tien") || slug.includes("san-so") || slug.includes("tmdt")
+      ? "/images/scam-refund.webp"
+      : slug.includes("my-pham") || slug.includes("su-kien")
+        ? "/images/counterfeit-cosmetics.webp"
+        : slug.includes("ma-doc") || slug.includes("tai-khoan")
+          ? "/images/cyber-phishing.webp"
+          : "/images/traceability-qr.webp",
+    alt: `Ảnh bìa chủ đề ${title.toLowerCase()}`,
+  },
   tags,
   relatedSlugs: [],
   seo: { title: `${title} | QSAC`, description: excerpt },
